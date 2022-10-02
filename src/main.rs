@@ -1,20 +1,24 @@
 mod cli;
+mod content;
 mod error;
 
 use clap::Parser;
 use cli::Cli;
+use content::Content;
 use error::Error;
-use std::{path::Path, process::exit};
+use std::{path::PathBuf, process::exit};
 
 fn main() {
     let args = Cli::parse();
-    let path_str = match args.path {
-        Some(p) => p,
-        None => String::from("."),
-    };
-    let path = Path::new(&path_str);
-    if !path.exists() {
-        eprintln!("{}", Error::PathNotFound(path_str));
-        exit(1);
+    let files = args.file;
+    for file in files {
+        let path = PathBuf::from(&file);
+        if !path.exists() {
+            eprintln!("{}", Error::PathNotFound(file));
+            exit(1);
+        }
+        let content = Content::from_path(&path);
+
+        println!("{:#?}", content);
     }
 }

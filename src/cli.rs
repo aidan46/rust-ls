@@ -2,8 +2,8 @@ use clap::Parser;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Cli {
-    #[clap(value_parser)]
-    pub(crate) path: Option<String>,
+    #[clap(value_parser, default_value = ".")]
+    pub(crate) file: Vec<String>,
     #[clap(short = 'a', long, action)]
     all: bool,
     #[clap(short = 'l', long, action)]
