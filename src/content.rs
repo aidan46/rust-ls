@@ -45,55 +45,7 @@ impl Content {
     }
 
     pub(crate) fn print_recurse(&self, all: bool, sorting: Sorting) {
-        self.print_inner_recurse(all);
-        for dir in &self.dirs {
-            println!("{}:", dir.path.to_str().unwrap());
-            self.print_dir_recurse(dir, all);
-        }
-    }
-
-    fn print_dir_recurse(&self, dir: &Directory, all: bool) {
-        let hidden = self.collect_hidden(dir);
-        let files = self.collect_files(dir);
-        let links = self.collect_links(dir);
-        let dirs = self.collect_dirs(dir);
-        if all {
-            for elem in hidden {
-                print!("{elem} ");
-            }
-        }
-        for file in files {
-            print!("{} ", file);
-        }
-        for link in links {
-            print!("{} ", link);
-        }
-        for dir in dirs {
-            print!("{} ", dir);
-        }
-        println!("\n")
-    }
-
-    fn print_inner_recurse(&self, all: bool) {
-        let hidden = self.collect_hidden(&self.inner);
-        let files = self.collect_files(&self.inner);
-        let links = self.collect_links(&self.inner);
-        let dirs = self.collect_dirs(&self.inner);
-        if all {
-            for elem in hidden {
-                print!("{elem} ");
-            }
-        }
-        for file in files {
-            print!("{} ", file);
-        }
-        for link in links {
-            print!("{} ", link);
-        }
-        for dir in dirs {
-            print!("{} ", dir);
-        }
-        println!("\n");
+        todo!()
     }
 
     pub(crate) fn print_long(&self, all: bool) {
