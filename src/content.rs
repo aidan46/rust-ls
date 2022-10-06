@@ -1,6 +1,7 @@
 #![allow(unused)]
 use byte_unit::{AdjustedByte, Byte};
 use chrono::{DateTime, Local};
+use colored::Colorize;
 use std::{
     fs::{read_dir, Permissions, ReadDir},
     os::unix::prelude::MetadataExt,
@@ -12,6 +13,28 @@ use std::{
 pub(crate) struct Content {
     inner: Directory,
     dirs: Vec<Directory>,
+}
+
+impl Content {
+    pub(crate) fn print_inner(&self) {
+        let inner = &self.inner;
+        for file in &inner.files {
+            let out = format!(" {} ", file.path.file_name().unwrap().to_str().unwrap());
+            print!("{} ", out);
+        }
+        for link in &inner.links {
+            let out = format!("⇒ {} ", link.path.file_name().unwrap().to_str().unwrap());
+            print!("{} ", out);
+        }
+        for dir in &inner.dirs {
+            let out = format!(" {} ", dir.path.file_name().unwrap().to_str().unwrap());
+            print!("{} ", out.blue());
+        }
+    }
+
+    pub(crate) fn print_recurse(&self) {
+        todo!()
+    }
 }
 
 #[derive(Debug)]
