@@ -2,7 +2,7 @@
 Oops, I rewrote `ls` in Rust.
 
 ## Basic usage
-```rust
+```bash
 rust-ls
 
 USAGE:
