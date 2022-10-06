@@ -1,5 +1,4 @@
 # rust-ls
-🗄️ A rewrite of the ls command in Rust.
 Oops, I rewrote `ls` in Rust.
 
 ## Basic usage
