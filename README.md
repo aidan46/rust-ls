@@ -25,5 +25,5 @@ OPTIONS:
 - [x] -a, --all, do not ignore entries starting with
 - [ ] -l, --long, display extened file metadata as a table
 - [x] -r, --reverse, reverse the order of the sort
-- [ ] -R, --recursive, recurse into directories
+- [x] -R, --recursive, recurse into directories
 - [ ] -t, --timesort, sort by time modified

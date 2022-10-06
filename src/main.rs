@@ -34,7 +34,7 @@ impl RustLs {
         if cli.recursive {
             // Recursive printing
             for content in &self.contents {
-                content.print_recurse();
+                content.print_recurse(cli.all, sorting);
             }
         } else {
             // Regular printing
