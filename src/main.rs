@@ -29,7 +29,7 @@ impl RustLs {
         self.contents.push(content);
     }
 
-    fn print_output(&self) {
+    fn print_output(&self, sorting: Sorting) {
         let cli = &self.cli;
         if cli.recursive {
             // Recursive printing
@@ -38,15 +38,35 @@ impl RustLs {
             }
         } else {
             // Regular printing
-            for content in &self.contents {
-                content.print_inner();
+            if !cli.long {
+                for content in &self.contents {
+                    content.print_short(cli.all, sorting);
+                }
+            } else {
+                for content in &self.contents {
+                    content.print_long(cli.all);
+                }
             }
         }
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+enum Sorting {
+    Normal,
+    Time,
+    Reverse,
+    TimeReverse,
+}
+
 fn main() {
     let cli = Cli::parse();
+    let sorting = match (cli.timesort, cli.reverse) {
+        (false, false) => Sorting::Normal,
+        (true, false) => Sorting::Time,
+        (false, true) => Sorting::Reverse,
+        (true, true) => Sorting::TimeReverse,
+    };
     let files = cli.files.clone();
     let mut rust_ls = RustLs::new(cli);
     for file in files {
@@ -58,5 +78,5 @@ fn main() {
         rust_ls.add_path(file, Content::from_path(&path));
     }
 
-    rust_ls.print_output();
+    rust_ls.print_output(sorting);
 }

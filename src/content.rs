@@ -1,13 +1,16 @@
 #![allow(unused)]
 use byte_unit::{AdjustedByte, Byte};
 use chrono::{DateTime, Local};
-use colored::Colorize;
+use colored::{ColoredString, Colorize};
 use std::{
+    cmp::Ordering,
     fs::{read_dir, Permissions, ReadDir},
     os::unix::prelude::MetadataExt,
     path::{Path, PathBuf},
     process::exit,
 };
+
+use crate::Sorting;
 
 #[derive(Debug)]
 pub(crate) struct Content {
@@ -16,20 +19,136 @@ pub(crate) struct Content {
 }
 
 impl Content {
-    pub(crate) fn print_inner(&self) {
+    pub(crate) fn print_short(&self, all: bool, sorting: Sorting) {
+        if let Sorting::Reverse = sorting {
+            self.print_short_reverse(all);
+            return;
+        }
         let inner = &self.inner;
-        for file in &inner.files {
-            let out = format!(" {} ", file.path.file_name().unwrap().to_str().unwrap());
-            print!("{} ", out);
+        let hidden = self.collect_hidden();
+        let files = self.collect_files();
+        let links = self.collect_links();
+        let dirs = self.collect_dirs();
+        if all {
+            for elem in hidden {
+                print!("{elem} ");
+            }
         }
-        for link in &inner.links {
-            let out = format!("⇒ {} ", link.path.file_name().unwrap().to_str().unwrap());
-            print!("{} ", out);
+        for file in files {
+            print!("{} ", file);
         }
+        for link in links {
+            print!("{} ", link);
+        }
+        for dir in dirs {
+            print!("{} ", dir);
+        }
+    }
+
+    fn print_short_reverse(&self, all: bool) {
+        let inner = &self.inner;
+        let hidden = {
+            let mut hidden = self.collect_hidden();
+            hidden.reverse();
+            hidden
+        };
+        let files = {
+            let mut files = self.collect_files();
+            files.reverse();
+            files
+        };
+
+        let links = {
+            let mut links = self.collect_links();
+            links.reverse();
+            links
+        };
+        let dirs = {
+            let mut dirs = self.collect_dirs();
+            dirs.reverse();
+            dirs
+        };
+
+        for dir in dirs {
+            print!("{} ", dir);
+        }
+        for link in links {
+            print!("{} ", link);
+        }
+        for file in files {
+            print!("{} ", file);
+        }
+        if all {
+            for elem in hidden {
+                print!("{elem} ");
+            }
+        }
+    }
+
+    fn collect_hidden(&self) -> Vec<ColoredString> {
+        let mut hidden = vec![];
+        let inner = &self.inner;
+        hidden.push(" .".blue().bold());
+        hidden.push(" ..".blue().bold());
+
         for dir in &inner.dirs {
-            let out = format!(" {} ", dir.path.file_name().unwrap().to_str().unwrap());
-            print!("{} ", out.blue());
+            let name = dir.path.file_name().unwrap().to_str().unwrap();
+            if name.starts_with('.') {
+                let out = format!(" {}", name);
+                hidden.push(out.blue().bold());
+            }
         }
+        for file in &inner.files {
+            let name = file.path.file_name().unwrap().to_str().unwrap();
+            if name.starts_with('.') {
+                let out = format!(" {}", name);
+                hidden.push(out.normal());
+            }
+        }
+        hidden
+    }
+
+    fn collect_files(&self) -> Vec<ColoredString> {
+        let mut files = vec![];
+
+        for file in &self.inner.files {
+            let name = file.path.file_name().unwrap().to_str().unwrap();
+            if !name.starts_with('.') {
+                let out = format!(" {}", name);
+                files.push(out.normal());
+            }
+        }
+        files
+    }
+
+    fn collect_links(&self) -> Vec<ColoredString> {
+        let mut links = vec![];
+
+        for link in &self.inner.links {
+            let name = link.path.file_name().unwrap().to_str().unwrap();
+            if !name.starts_with('.') {
+                let out = format!("⇒ {} ", name);
+                links.push(out.yellow());
+            }
+        }
+        links
+    }
+
+    fn collect_dirs(&self) -> Vec<ColoredString> {
+        let mut dirs = vec![];
+
+        for dir in &self.inner.dirs {
+            let name = dir.path.file_name().unwrap().to_str().unwrap();
+            if !name.starts_with('.') {
+                let out = format!(" {} ", name);
+                dirs.push(out.blue().bold());
+            }
+        }
+        dirs
+    }
+
+    pub(crate) fn print_long(&self, all: bool) {
+        todo!()
     }
 
     pub(crate) fn print_recurse(&self) {
@@ -109,7 +228,7 @@ impl Content {
         let mut dirs = vec![];
 
         // Parse self "./"
-        let inner = match read_dir(path) {
+        let mut inner = match read_dir(path) {
             Ok(read_dir) => Content::get_dir_content(path.to_path_buf(), read_dir),
             Err(e) => {
                 eprintln!("{e}");
@@ -141,6 +260,14 @@ impl Content {
                 eprintln!("{e}");
             }
         }
+
+        inner
+            .files
+            .sort_by(|a, b| a.path.file_name().unwrap().cmp(b.path.file_name().unwrap()));
+        inner
+            .dirs
+            .sort_by(|a, b| a.path.file_name().unwrap().cmp(b.path.file_name().unwrap()));
+        dirs.sort_by(|a, b| a.path.file_name().unwrap().cmp(b.path.file_name().unwrap()));
 
         Self { inner, dirs }
     }
